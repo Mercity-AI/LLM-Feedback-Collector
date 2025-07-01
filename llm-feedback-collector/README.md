@@ -6,6 +6,9 @@ A Next.js application for collecting feedback on LLM responses with real-time st
 
 - ✅ **Streaming Chat Interface** - Real-time chat with GPT-4o via OpenRouter using Server-Sent Events
 - ✅ **OpenRouter Integration** - Full integration with OpenRouter for multiple LLM providers
+- ✅ **Markdown Rendering** - Full markdown support with GitHub Flavored Markdown (GFM)
+- ✅ **LaTeX Support** - Mathematical expressions rendered with KaTeX
+- ✅ **Smart Overflow Handling** - Responsive chat layout with proper text wrapping
 - ✅ **OpenAI Schema Compliance** - Messages follow `{role: 'user'|'assistant', content: string}` format
 - ✅ **Modern UI** - Built with shadcn/ui and Tailwind CSS
 - ✅ **TypeScript** - Full type safety throughout the application
@@ -14,9 +17,12 @@ A Next.js application for collecting feedback on LLM responses with real-time st
 
 ## Tech Stack
 
-- **Frontend**: Next.js 14, React, TypeScript, Tailwind CSS
+- **Frontend**: Next.js 15, React, TypeScript, Tailwind CSS
 - **UI Components**: shadcn/ui
-- **API**: Next.js API Routes with streaming
+- **Markdown**: React Markdown with GitHub Flavored Markdown support
+- **Mathematics**: KaTeX for LaTeX rendering
+- **API**: Next.js API Routes with OpenRouter integration and streaming
+- **LLM Provider**: OpenRouter (GPT-4o)
 - **Future**: Prisma ORM, SQLite Database
 
 ## Getting Started
@@ -83,11 +89,15 @@ src/
 ## Chat Features
 
 - **Real-time Streaming** - Messages appear word by word
+- **Markdown Rendering** - Full support for headers, lists, tables, links, and code blocks
+- **LaTeX Mathematics** - Renders mathematical expressions using KaTeX
+- **Syntax Highlighting** - Code blocks with proper formatting
+- **Smart Text Wrapping** - Prevents overflow with long content
 - **Message History** - Maintains conversation context
 - **Auto-scroll** - Automatically scrolls to latest messages
 - **Stop Generation** - Ability to stop streaming mid-response
 - **Clear Chat** - Reset conversation
-- **Responsive Design** - Works on desktop and mobile
+- **Responsive Design** - Works on desktop and mobile with improved layout
 - **Loading States** - Visual feedback during streaming
 - **Error Handling** - Graceful error recovery
 

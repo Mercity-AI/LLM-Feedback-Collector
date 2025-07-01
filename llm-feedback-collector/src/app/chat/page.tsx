@@ -5,9 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import remarkGfm from 'remark-gfm';
+import 'katex/dist/katex.min.css';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -20,15 +24,57 @@ export default function ChatPage() {
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingContent, setStreamingContent] = useState('');
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isAtBottomRef = useRef(true);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Auto-scroll to bottom when new messages arrive
+  // Track user's scroll position to decide whether to auto-scroll (native div)
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
-    }
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+      isAtBottomRef.current = distanceFromBottom < 40;
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Auto-scroll to bottom when new messages arrive (only if user was already near bottom)
+  useEffect(() => {
+    if (!isAtBottomRef.current) return; // do nothing if user scrolled up
+
+    const scrollToBottom = () => {
+      // Primary: use messagesEndRef for smooth scrolling
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+
+      // Fallback: direct manipulation of container scrollTop
+      if (messagesContainerRef.current) {
+        messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+      }
+    };
+
+    scrollToBottom();
   }, [messages, streamingContent]);
+
+  // Auto-focus input on mount and after sending messages
+  useEffect(() => {
+    if (inputRef.current && !isStreaming) {
+      inputRef.current.focus();
+    }
+  }, [isStreaming]);
+
+  // Focus input on mount
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
 
   const sendMessage = async () => {
     if (!input.trim() || isStreaming) return;
@@ -39,13 +85,20 @@ export default function ChatPage() {
       timestamp: new Date().toISOString()
     };
 
-    // Add user message to the conversation
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsStreaming(true);
     setStreamingContent('');
+    isAtBottomRef.current = true; // assume user wants to stay at bottom after sending
+    
+    // Maintain focus on input after clearing
+    setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    }, 100);
 
-    // Create abort controller for this request
+    // Create new abort controller for this request
     abortControllerRef.current = new AbortController();
 
     try {
@@ -151,12 +204,94 @@ export default function ChatPage() {
     if (isStreaming) {
       stopGeneration();
     }
+    
+    // Restore focus after clearing
+    setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    }, 100);
   };
+
+  const MarkdownMessage = ({ content }: { content: string }) => (
+    <div className="prose prose-sm max-w-none break-words">
+      <ReactMarkdown
+        remarkPlugins={[remarkMath, remarkGfm]}
+        rehypePlugins={[rehypeKatex]}
+        components={{
+          // Customize code blocks
+          code: ({children, className, ...props}) => {
+            const isInline = !className?.includes('language-');
+            if (isInline) {
+              return (
+                <code className="bg-gray-200 px-1 py-0.5 rounded text-sm" {...props}>
+                  {children}
+                </code>
+              );
+            }
+            return (
+              <pre className="bg-gray-800 text-white p-3 rounded-lg overflow-x-auto my-2">
+                <code className={className} {...props}>{children}</code>
+              </pre>
+            );
+          },
+          // Customize links
+          a: ({href, children}) => (
+            <a href={href} className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">
+              {children}
+            </a>
+          ),
+          // Customize tables
+          table: ({children}) => (
+            <div className="overflow-x-auto my-2">
+              <table className="min-w-full border-collapse border border-gray-300">
+                {children}
+              </table>
+            </div>
+          ),
+          th: ({children}) => (
+            <th className="border border-gray-300 px-2 py-1 bg-gray-100 font-semibold text-left">
+              {children}
+            </th>
+          ),
+          td: ({children}) => (
+            <td className="border border-gray-300 px-2 py-1">
+              {children}
+            </td>
+          ),
+          // Customize paragraphs for better spacing
+          p: ({children}) => (
+            <p className="mb-2 last:mb-0">
+              {children}
+            </p>
+          ),
+          // Customize headings
+          h1: ({children}) => (
+            <h1 className="text-xl font-bold mb-2 mt-4 first:mt-0">
+              {children}
+            </h1>
+          ),
+          h2: ({children}) => (
+            <h2 className="text-lg font-bold mb-2 mt-3 first:mt-0">
+              {children}
+            </h2>
+          ),
+          h3: ({children}) => (
+            <h3 className="text-base font-bold mb-2 mt-3 first:mt-0">
+              {children}
+            </h3>
+          ),
+        }}
+      >
+        {content}
+      </ReactMarkdown>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <div className="container mx-auto p-4 max-w-4xl">
-        <Card className="h-[90vh] flex flex-col">
+      <div className="container mx-auto p-4 max-w-5xl">
+        <Card className="h-[95vh] flex flex-col">
           <CardHeader className="flex-shrink-0">
             <div className="flex items-center justify-between">
               <div>
@@ -183,100 +318,106 @@ export default function ChatPage() {
 
           <Separator />
 
-          <CardContent className="flex-1 flex flex-col p-0">
+          <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
             {/* Messages Area */}
-            <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
-              <div className="space-y-4">
-                {messages.length === 0 && !isStreaming && (
-                  <div className="text-center text-gray-500 py-8">
-                    <p className="text-lg">Start a conversation!</p>
-                    <p className="text-sm">Type a message below to begin chatting with the assistant.</p>
-                  </div>
-                )}
+            <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
+              {messages.length === 0 && !isStreaming && (
+                <div className="text-center text-gray-500 py-8">
+                  <p className="text-lg">Start a conversation!</p>
+                  <p className="text-sm">Type a message below to begin chatting with the assistant.</p>
+                </div>
+              )}
 
-                {messages.map((message, index) => (
+              {messages.map((message, index) => (
+                <div
+                  key={index}
+                  className={`flex gap-3 ${
+                    message.role === 'user' ? 'justify-end' : 'justify-start'
+                  }`}
+                >
+                  {message.role === 'assistant' && (
+                    <Avatar className="h-8 w-8 flex-shrink-0">
+                      <AvatarFallback className="bg-blue-500 text-white text-xs">
+                        AI
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
+                  
                   <div
-                    key={index}
-                    className={`flex gap-3 ${
-                      message.role === 'user' ? 'justify-end' : 'justify-start'
+                    className={`max-w-[75%] rounded-lg px-4 py-2 overflow-hidden ${
+                      message.role === 'user'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-100 text-gray-900'
                     }`}
                   >
-                    {message.role === 'assistant' && (
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback className="bg-blue-500 text-white text-xs">
-                          AI
-                        </AvatarFallback>
-                      </Avatar>
+                    {message.role === 'assistant' ? (
+                      <MarkdownMessage content={message.content} />
+                    ) : (
+                      <p className="whitespace-pre-wrap break-words">{message.content}</p>
                     )}
-                    
-                    <div
-                      className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                        message.role === 'user'
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-gray-100 text-gray-900'
-                      }`}
-                    >
-                      <p className="whitespace-pre-wrap">{message.content}</p>
-                      {message.timestamp && (
-                        <p className={`text-xs mt-1 ${
-                          message.role === 'user' ? 'text-blue-100' : 'text-gray-500'
-                        }`}>
-                          {new Date(message.timestamp).toLocaleTimeString()}
-                        </p>
-                      )}
-                    </div>
-
-                    {message.role === 'user' && (
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback className="bg-green-500 text-white text-xs">
-                          U
-                        </AvatarFallback>
-                      </Avatar>
+                    {message.timestamp && (
+                      <p className={`text-xs mt-2 ${
+                        message.role === 'user' ? 'text-blue-100' : 'text-gray-500'
+                      }`}>
+                        {new Date(message.timestamp).toLocaleTimeString()}
+                      </p>
                     )}
                   </div>
-                ))}
 
-                {/* Streaming Message */}
-                {isStreaming && streamingContent && (
-                  <div className="flex gap-3 justify-start">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-blue-500 text-white text-xs">
-                        AI
+                  {message.role === 'user' && (
+                    <Avatar className="h-8 w-8 flex-shrink-0">
+                      <AvatarFallback className="bg-green-500 text-white text-xs">
+                        U
                       </AvatarFallback>
                     </Avatar>
-                    <div className="max-w-[80%] rounded-lg px-4 py-2 bg-gray-100 text-gray-900">
-                      <p className="whitespace-pre-wrap">{streamingContent}</p>
-                      <div className="inline-block w-2 h-4 bg-blue-500 ml-1 animate-pulse"></div>
-                    </div>
-                  </div>
-                )}
+                  )}
+                </div>
+              ))}
 
-                {/* Loading indicator when starting */}
-                {isStreaming && !streamingContent && (
-                  <div className="flex gap-3 justify-start">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-blue-500 text-white text-xs">
-                        AI
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="max-w-[80%] rounded-lg px-4 py-2 bg-gray-100 text-gray-900">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce delay-100"></div>
-                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce delay-200"></div>
-                      </div>
+              {/* Streaming Message */}
+              {isStreaming && streamingContent && (
+                <div className="flex gap-3 justify-start">
+                  <Avatar className="h-8 w-8 flex-shrink-0">
+                    <AvatarFallback className="bg-blue-500 text-white text-xs">
+                      AI
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="max-w-[75%] rounded-lg px-4 py-2 bg-gray-100 text-gray-900 overflow-hidden">
+                    <MarkdownMessage content={streamingContent} />
+                    <div className="inline-block w-2 h-4 bg-blue-500 ml-1 animate-pulse"></div>
+                  </div>
+                </div>
+              )}
+
+              {/* Loading indicator when starting */}
+              {isStreaming && !streamingContent && (
+                <div className="flex gap-3 justify-start">
+                  <Avatar className="h-8 w-8 flex-shrink-0">
+                    <AvatarFallback className="bg-blue-500 text-white text-xs">
+                      AI
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="max-w-[75%] rounded-lg px-4 py-2 bg-gray-100 text-gray-900">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce delay-100"></div>
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce delay-200"></div>
                     </div>
                   </div>
-                )}
-              </div>
-            </ScrollArea>
+                </div>
+              )}
+              
+              {/* Invisible div for auto-scrolling */}
+              <div ref={messagesEndRef} className="h-1" />
+            </div>
 
             <Separator />
 
             {/* Input Area */}
-            <div className="p-4">
+            <div className="p-4 flex-shrink-0">
               <div className="flex gap-2">
                 <Input
+                  ref={inputRef}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={handleKeyPress}

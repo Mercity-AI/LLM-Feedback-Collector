@@ -112,7 +112,7 @@ export default function Home() {
                 <div className="p-4 border rounded-lg hover:shadow-md transition-shadow">
                   <h3 className="font-semibold mb-2">🤖 Chat Interface</h3>
                   <p className="text-sm text-gray-600 mb-3">
-                    Interactive chat with GPT-4o via OpenRouter with real-time streaming
+                    Interactive chat with GPT-4o via OpenRouter featuring markdown rendering, LaTeX support, and real-time streaming
                   </p>
                   <Button asChild size="sm" className="w-full">
                     <a href="/chat">Try Chat Interface</a>

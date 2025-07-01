@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
 
     // Create streaming chat completion with OpenRouter
     const stream = await openai.chat.completions.create({
-      model: 'openai/gpt-4o',
+      model: 'openai/gpt-4.1-mini',
       messages: body.messages,
       stream: true,
       temperature: 0.7,
@@ -57,16 +57,32 @@ export async function POST(request: NextRequest) {
     const readableStream = new ReadableStream({
       async start(controller) {
         let fullContent = '';
+        let isControllerClosed = false;
+        
+        const safeClose = () => {
+          if (!isControllerClosed) {
+            controller.close();
+            isControllerClosed = true;
+          }
+        };
+        
+        const safeEnqueue = (data: Uint8Array) => {
+          if (!isControllerClosed) {
+            controller.enqueue(data);
+          }
+        };
         
         try {
           for await (const chunk of stream) {
+            if (isControllerClosed) break;
+            
             const content = chunk.choices[0]?.delta?.content || '';
             
             if (content) {
               fullContent += content;
               
               // Send the content chunk
-              controller.enqueue(
+              safeEnqueue(
                 encoder.encode(`data: ${JSON.stringify({ type: 'content', content })}\n\n`)
               );
             }
@@ -86,23 +102,25 @@ export async function POST(request: NextRequest) {
                 messageCount: clientMessages.length + 1
               };
               
-              controller.enqueue(
+              safeEnqueue(
                 encoder.encode(`data: ${JSON.stringify(finalData)}\n\n`)
               );
               
-              controller.close();
+              safeClose();
               break;
             }
           }
         } catch (error) {
           console.error('OpenRouter streaming error:', error);
-          controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify({ 
-              type: 'error', 
-              error: 'Stream processing failed' 
-            })}\n\n`)
-          );
-          controller.close();
+          if (!isControllerClosed) {
+            safeEnqueue(
+              encoder.encode(`data: ${JSON.stringify({ 
+                type: 'error', 
+                error: 'Stream processing failed' 
+              })}\n\n`)
+            );
+            safeClose();
+          }
         }
       }
     });
