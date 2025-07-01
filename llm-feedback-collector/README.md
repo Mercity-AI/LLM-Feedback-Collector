@@ -4,7 +4,8 @@ A Next.js application for collecting feedback on LLM responses with real-time st
 
 ## Features
 
-- ✅ **Streaming Chat Interface** - Real-time chat with LLM using Server-Sent Events
+- ✅ **Streaming Chat Interface** - Real-time chat with GPT-4o via OpenRouter using Server-Sent Events
+- ✅ **OpenRouter Integration** - Full integration with OpenRouter for multiple LLM providers
 - ✅ **OpenAI Schema Compliance** - Messages follow `{role: 'user'|'assistant', content: string}` format
 - ✅ **Modern UI** - Built with shadcn/ui and Tailwind CSS
 - ✅ **TypeScript** - Full type safety throughout the application
@@ -25,12 +26,19 @@ A Next.js application for collecting feedback on LLM responses with real-time st
    npm install
    ```
 
-2. **Start Development Server**
+2. **Configure Environment**
+   Create a `.env` file in the project root:
+   ```env
+   OPENROUTER_API_KEY=your_openrouter_api_key_here
+   ```
+   Get your API key from [OpenRouter](https://openrouter.ai/)
+
+3. **Start Development Server**
    ```bash
    npm run dev
    ```
 
-3. **Open Application**
+4. **Open Application**
    - Main page: http://localhost:3000
    - Chat interface: http://localhost:3000/chat
 
@@ -105,10 +113,10 @@ The application uses:
    - Message persistence
    - Feedback storage
 
-3. **Real LLM Integration**
-   - OpenAI API integration
-   - Custom model support
-   - System message configuration
+3. **Enhanced Model Support**
+   - Multiple model selection UI
+   - Custom system message configuration
+   - Temperature and parameter controls
 
 4. **Analytics Dashboard**
    - Feedback analytics

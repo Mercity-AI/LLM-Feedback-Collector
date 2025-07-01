@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import OpenAI from 'openai';
 
 interface Message {
   role: 'user' | 'assistant' | 'system';
@@ -9,14 +10,11 @@ interface ChatRequest {
   messages: Message[];
 }
 
-// Dummy responses for simulation
-const dummyResponses = [
-  "I understand your question. Let me think about this carefully and provide you with a comprehensive response.",
-  "That's an interesting point you've raised. Based on my understanding, I can offer several perspectives on this topic.",
-  "Thank you for that question. I'll break this down into key components to give you a thorough answer.",
-  "This is a complex topic that deserves a detailed explanation. Let me walk you through the various aspects.",
-  "I appreciate you asking about this. Here's what I think based on the information available to me."
-];
+// Initialize OpenAI client with OpenRouter configuration
+const openai = new OpenAI({
+  apiKey: process.env.OPENROUTER_API_KEY,
+  baseURL: 'https://openrouter.ai/api/v1',
+});
 
 export async function POST(request: NextRequest) {
   try {
@@ -45,58 +43,71 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Create streaming chat completion with OpenRouter
+    const stream = await openai.chat.completions.create({
+      model: 'openai/gpt-4o',
+      messages: body.messages,
+      stream: true,
+      temperature: 0.7,
+      max_tokens: 2000,
+    });
+
     // Create a readable stream for the response
     const encoder = new TextEncoder();
-    const stream = new ReadableStream({
-      start(controller) {
-        // Select a random dummy response
-        const responseText = dummyResponses[Math.floor(Math.random() * dummyResponses.length)];
-        const words = responseText.split(' ');
+    const readableStream = new ReadableStream({
+      async start(controller) {
+        let fullContent = '';
         
-        let wordIndex = 0;
-        
-        const streamNextWord = () => {
-          if (wordIndex < words.length) {
-            const word = words[wordIndex];
-            const chunk = wordIndex === 0 ? word : ` ${word}`;
+        try {
+          for await (const chunk of stream) {
+            const content = chunk.choices[0]?.delta?.content || '';
             
-            // Send the text chunk
-            controller.enqueue(
-              encoder.encode(`data: ${JSON.stringify({ type: 'content', content: chunk })}\n\n`)
-            );
+            if (content) {
+              fullContent += content;
+              
+              // Send the content chunk
+              controller.enqueue(
+                encoder.encode(`data: ${JSON.stringify({ type: 'content', content })}\n\n`)
+              );
+            }
             
-            wordIndex++;
-            
-            // Random delay between 50-200ms to simulate typing
-            setTimeout(streamNextWord, Math.random() * 150 + 50);
-          } else {
-            // Send completion signal with final message data
-            const assistantMessage: Message = {
-              role: 'assistant',
-              content: responseText
-            };
-            
-            const finalData = {
-              type: 'complete',
-              message: assistantMessage,
-              timestamp: new Date().toISOString(),
-              messageCount: clientMessages.length + 1
-            };
-            
-            controller.enqueue(
-              encoder.encode(`data: ${JSON.stringify(finalData)}\n\n`)
-            );
-            
-            controller.close();
+            // Check if the stream is done
+            if (chunk.choices[0]?.finish_reason === 'stop') {
+              // Send completion signal with final message data
+              const assistantMessage: Message = {
+                role: 'assistant',
+                content: fullContent
+              };
+              
+              const finalData = {
+                type: 'complete',
+                message: assistantMessage,
+                timestamp: new Date().toISOString(),
+                messageCount: clientMessages.length + 1
+              };
+              
+              controller.enqueue(
+                encoder.encode(`data: ${JSON.stringify(finalData)}\n\n`)
+              );
+              
+              controller.close();
+              break;
+            }
           }
-        };
-        
-        // Start streaming after a short delay
-        setTimeout(streamNextWord, 100);
+        } catch (error) {
+          console.error('OpenRouter streaming error:', error);
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify({ 
+              type: 'error', 
+              error: 'Stream processing failed' 
+            })}\n\n`)
+          );
+          controller.close();
+        }
       }
     });
 
-    return new Response(stream, {
+    return new Response(readableStream, {
       headers: {
         'Content-Type': 'text/plain; charset=utf-8',
         'Cache-Control': 'no-cache',
@@ -110,7 +121,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Chat API error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
@@ -118,7 +129,9 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   return NextResponse.json({
-    message: 'Chat API is ready',
+    message: 'Chat API is ready - OpenRouter Integration',
+    provider: 'OpenRouter',
+    model: 'openai/gpt-4o',
     supportedMethods: ['POST'],
     schema: {
       messages: [

@@ -99,6 +99,16 @@ export default function ChatPage() {
                 setMessages(prev => [...prev, assistantMessage]);
                 setStreamingContent('');
                 setIsStreaming(false);
+              } else if (data.type === 'error') {
+                // Handle stream error
+                console.error('Stream error:', data.error);
+                setMessages(prev => [...prev, {
+                  role: 'assistant',
+                  content: 'Sorry, I encountered an error while processing your request. Please try again.',
+                  timestamp: new Date().toISOString()
+                }]);
+                setStreamingContent('');
+                setIsStreaming(false);
               }
             } catch (e) {
               console.error('Error parsing stream data:', e);
@@ -152,7 +162,7 @@ export default function ChatPage() {
               <div>
                 <CardTitle className="text-2xl">LLM Chat Interface</CardTitle>
                 <p className="text-sm text-gray-600 mt-1">
-                  Chat with the assistant using streaming responses
+                  Chat with GPT-4o via OpenRouter using streaming responses
                 </p>
               </div>
               <div className="flex items-center gap-2">
