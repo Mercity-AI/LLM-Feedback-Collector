@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import FeedbackWidget from '@/components/FeedbackWidget';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
@@ -16,7 +17,15 @@ import 'katex/dist/katex.min.css';
 interface Message {
   role: 'user' | 'assistant';
   content: string;
-  timestamp?: string;
+  timestamp: string;
+}
+
+interface FeedbackData {
+  [messageIndex: number]: {
+    thumbs?: 'up' | 'down';
+    rating?: number;
+    comment?: string;
+  };
 }
 
 export default function ChatPage() {
@@ -24,6 +33,9 @@ export default function ChatPage() {
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingContent, setStreamingContent] = useState('');
+  const [username, setUsername] = useState('');
+  const [sessionId] = useState(() => crypto.randomUUID());
+  const [feedback, setFeedback] = useState<FeedbackData>({});
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -76,8 +88,47 @@ export default function ChatPage() {
     }
   }, []);
 
+  // Save conversation to database whenever messages change
+  useEffect(() => {
+    if (messages.length > 0 && username.trim()) {
+      saveConversationToDb();
+    }
+  }, [messages, username, sessionId, feedback]);
+
+  const saveConversationToDb = async () => {
+    try {
+      const response = await fetch('/api/conversations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId,
+          username: username.trim(),
+          messages,
+          feedback,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save conversation');
+      }
+
+      console.log('Conversation saved successfully');
+    } catch (error) {
+      console.error('Error saving conversation:', error);
+    }
+  };
+
+  const handleFeedbackUpdate = (messageIndex: number, feedbackData: any) => {
+    setFeedback((prev: FeedbackData) => ({
+      ...prev,
+      [messageIndex]: feedbackData
+    }));
+  };
+
   const sendMessage = async () => {
-    if (!input.trim() || isStreaming) return;
+    if (!input.trim() || isStreaming || !username.trim()) return;
 
     const userMessage: Message = {
       role: 'user',
@@ -201,6 +252,7 @@ export default function ChatPage() {
   const clearChat = () => {
     setMessages([]);
     setStreamingContent('');
+    setFeedback({});
     if (isStreaming) {
       stopGeneration();
     }
@@ -314,6 +366,18 @@ export default function ChatPage() {
                 </Button>
               </div>
             </div>
+            
+            {/* Username input */}
+            <div className="mt-4">
+              <label className="text-sm font-medium">Username:</label>
+              <Input
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Enter your username..."
+                className="mt-1 max-w-xs"
+                disabled={isStreaming}
+              />
+            </div>
           </CardHeader>
 
           <Separator />
@@ -324,7 +388,12 @@ export default function ChatPage() {
               {messages.length === 0 && !isStreaming && (
                 <div className="text-center text-gray-500 py-8">
                   <p className="text-lg">Start a conversation!</p>
-                  <p className="text-sm">Type a message below to begin chatting with the assistant.</p>
+                  <p className="text-sm">
+                    {!username.trim() 
+                      ? "Enter your username above, then type a message to begin chatting with the assistant."
+                      : "Type a message below to begin chatting with the assistant."
+                    }
+                  </p>
                 </div>
               )}
 
@@ -361,6 +430,16 @@ export default function ChatPage() {
                       }`}>
                         {new Date(message.timestamp).toLocaleTimeString()}
                       </p>
+                    )}
+                    
+                    {/* Feedback widget for assistant messages */}
+                    {message.role === 'assistant' && (
+                      <FeedbackWidget
+                        messageIndex={index}
+                        sessionId={sessionId}
+                        onFeedbackUpdate={handleFeedbackUpdate}
+                        initialFeedback={feedback[index]}
+                      />
                     )}
                   </div>
 
@@ -437,7 +516,7 @@ export default function ChatPage() {
                 ) : (
                   <Button 
                     onClick={sendMessage}
-                    disabled={!input.trim()}
+                    disabled={!input.trim() || !username.trim()}
                   >
                     Send
                   </Button>
@@ -446,6 +525,7 @@ export default function ChatPage() {
               
               <p className="text-xs text-gray-500 mt-2">
                 Press Enter to send • Shift+Enter for new line
+                {!username.trim() && " • Enter username to start chatting"}
               </p>
             </div>
           </CardContent>
