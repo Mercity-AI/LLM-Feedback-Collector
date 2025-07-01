@@ -1,0 +1,15 @@
+
+> llm-feedback-collector@0.1.0 dev
+> next dev --turbopack
+
+   ▲ Next.js 15.3.4 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.1.45:3000
+   - Environments: .env
+
+ ✓ Starting...
+ ✓ Ready in 594ms
+ ○ Compiling /chat ...
+ ✓ Compiled /chat in 1094ms
+ GET /chat 200 in 1601ms
+[?25h
