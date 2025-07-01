@@ -100,36 +100,45 @@ export default function Home() {
           </Card>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Next Steps</CardTitle>
-            <CardDescription>
-              Ready to build your LLM feedback collection system
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="p-4 border rounded-lg">
-                <h3 className="font-semibold mb-2">🤖 Chat Interface</h3>
-                <p className="text-sm text-gray-600">
-                  Build the chat UI for users to interact with LLMs
-                </p>
+                  <Card>
+            <CardHeader>
+              <CardTitle>Available Features</CardTitle>
+              <CardDescription>
+                Explore the implemented features of your LLM feedback system
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="p-4 border rounded-lg hover:shadow-md transition-shadow">
+                  <h3 className="font-semibold mb-2">🤖 Chat Interface</h3>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Interactive chat with streaming responses following OpenAI schema
+                  </p>
+                  <Button asChild size="sm" className="w-full">
+                    <a href="/chat">Try Chat Interface</a>
+                  </Button>
+                </div>
+                <div className="p-4 border rounded-lg opacity-60">
+                  <h3 className="font-semibold mb-2">⭐ Feedback System</h3>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Rate and comment on LLM responses (Coming Soon)
+                  </p>
+                  <Button size="sm" className="w-full" disabled>
+                    Coming Soon
+                  </Button>
+                </div>
+                <div className="p-4 border rounded-lg opacity-60">
+                  <h3 className="font-semibold mb-2">💾 Database Setup</h3>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Persistent storage with Prisma + SQLite (Coming Soon)
+                  </p>
+                  <Button size="sm" className="w-full" disabled>
+                    Coming Soon
+                  </Button>
+                </div>
               </div>
-              <div className="p-4 border rounded-lg">
-                <h3 className="font-semibold mb-2">⭐ Feedback System</h3>
-                <p className="text-sm text-gray-600">
-                  Implement rating, comments, and feedback collection
-                </p>
-              </div>
-              <div className="p-4 border rounded-lg">
-                <h3 className="font-semibold mb-2">💾 Database Setup</h3>
-                <p className="text-sm text-gray-600">
-                  Add Prisma + SQLite for data persistence
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
       </div>
     </main>
   );

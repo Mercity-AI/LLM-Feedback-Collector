@@ -1,36 +1,128 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LLM Feedback Collector
+
+A Next.js application for collecting feedback on LLM responses with real-time streaming chat interface.
+
+## Features
+
+- ✅ **Streaming Chat Interface** - Real-time chat with LLM using Server-Sent Events
+- ✅ **OpenAI Schema Compliance** - Messages follow `{role: 'user'|'assistant', content: string}` format
+- ✅ **Modern UI** - Built with shadcn/ui and Tailwind CSS
+- ✅ **TypeScript** - Full type safety throughout the application
+- 🚧 **Feedback System** - Rating and comments (Coming Soon)
+- 🚧 **Database Integration** - Prisma + SQLite (Coming Soon)
+
+## Tech Stack
+
+- **Frontend**: Next.js 14, React, TypeScript, Tailwind CSS
+- **UI Components**: shadcn/ui
+- **API**: Next.js API Routes with streaming
+- **Future**: Prisma ORM, SQLite Database
 
 ## Getting Started
 
-First, run the development server:
+1. **Install Dependencies**
+   ```bash
+   npm install
+   ```
+
+2. **Start Development Server**
+   ```bash
+   npm run dev
+   ```
+
+3. **Open Application**
+   - Main page: http://localhost:3000
+   - Chat interface: http://localhost:3000/chat
+
+## API Endpoints
+
+### Health Check
+- `GET /api/health` - System status and information
+- `POST /api/health` - Echo endpoint for testing
+
+### Chat (Streaming)
+- `POST /api/chat` - Stream chat responses
+- Accepts: `{messages: [{role: 'user'|'assistant', content: string}]}`
+- Returns: Server-Sent Events stream with incremental content
+
+#### Chat API Usage
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Test the streaming endpoint
+curl -X POST http://localhost:3000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"Hello!"}]}' \
+  --no-buffer
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Project Structure
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+src/
+├── app/
+│   ├── api/
+│   │   ├── health/route.ts    # Health check endpoints
+│   │   └── chat/route.ts      # Streaming chat API
+│   ├── chat/
+│   │   └── page.tsx           # Chat interface
+│   ├── page.tsx               # Main landing page
+│   └── globals.css            # Global styles
+├── components/ui/             # shadcn/ui components
+└── lib/
+    └── utils.ts               # Utility functions
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Chat Features
 
-## Learn More
+- **Real-time Streaming** - Messages appear word by word
+- **Message History** - Maintains conversation context
+- **Auto-scroll** - Automatically scrolls to latest messages
+- **Stop Generation** - Ability to stop streaming mid-response
+- **Clear Chat** - Reset conversation
+- **Responsive Design** - Works on desktop and mobile
+- **Loading States** - Visual feedback during streaming
+- **Error Handling** - Graceful error recovery
 
-To learn more about Next.js, take a look at the following resources:
+## Development
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The application uses:
+- **App Router** for modern Next.js routing
+- **Server Components** for optimal performance
+- **Client Components** for interactive features
+- **Streaming APIs** for real-time responses
+- **Abort Controllers** for request cancellation
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Future Enhancements
 
-## Deploy on Vercel
+1. **Feedback System**
+   - 👍/👎 reactions on messages
+   - 0-10 rating scale
+   - Text comments on responses
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+2. **Database Integration**
+   - Prisma ORM setup
+   - SQLite for development
+   - Message persistence
+   - Feedback storage
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+3. **Real LLM Integration**
+   - OpenAI API integration
+   - Custom model support
+   - System message configuration
+
+4. **Analytics Dashboard**
+   - Feedback analytics
+   - Response quality metrics
+   - Usage statistics
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## License
+
+MIT License - feel free to use this project as a starting point for your own LLM feedback collection system.
