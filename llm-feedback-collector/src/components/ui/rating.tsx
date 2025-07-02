@@ -1,0 +1,1 @@
+export { Rating, RatingButton, type RatingProps, type RatingButtonProps } from './shadcn-io/rating'; 
