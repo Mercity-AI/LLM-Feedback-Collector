@@ -11,13 +11,17 @@ datasource db {
 }
 
 model Conversation {
-  id         Int      @id @default(autoincrement())
-  sessionId  String   @unique @map("session_id")
-  username   String
-  messages   String   // JSON string storing message array
-  feedback   String   @default("{}") // JSON string storing feedback object
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
+  id              Int      @id @default(autoincrement())
+  sessionId       String   @unique @map("session_id")
+  username        String
+  messages        String   // JSON string storing message array
+  feedback        String   @default("{}") // JSON string storing feedback object
+  overallRating   Int?     @map("overall_rating") // 1-5 star rating
+  overallThumbs   String?  @map("overall_thumbs") // "up" or "down"
+  overallFeedback String?  @map("overall_feedback") // text feedback
+  isCompleted     Boolean  @default(false) @map("is_completed") // whether user ended the chat
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
   @@map("conversations")
 }

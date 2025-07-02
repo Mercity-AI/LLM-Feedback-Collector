@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import FeedbackWidget from '@/components/FeedbackWidget';
+import OverallFeedbackDialog from '@/components/OverallFeedbackDialog';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
@@ -36,6 +37,8 @@ export default function ChatPage() {
   const [username, setUsername] = useState('');
   const [sessionId] = useState(() => crypto.randomUUID());
   const [feedback, setFeedback] = useState<FeedbackData>({});
+  const [showOverallFeedbackDialog, setShowOverallFeedbackDialog] = useState(false);
+  const [isChatEnded, setIsChatEnded] = useState(false);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -88,14 +91,7 @@ export default function ChatPage() {
     }
   }, []);
 
-  // Save conversation to database whenever messages change
-  useEffect(() => {
-    if (messages.length > 0 && username.trim()) {
-      saveConversationToDb();
-    }
-  }, [messages, username, sessionId, feedback]);
-
-  const saveConversationToDb = async () => {
+  const saveConversationToDb = useCallback(async () => {
     try {
       const response = await fetch('/api/conversations', {
         method: 'POST',
@@ -118,13 +114,61 @@ export default function ChatPage() {
     } catch (error) {
       console.error('Error saving conversation:', error);
     }
-  };
+  }, [sessionId, username, messages, feedback]);
 
-  const handleFeedbackUpdate = (messageIndex: number, feedbackData: any) => {
+  // Save conversation to database whenever messages change
+  useEffect(() => {
+    if (messages.length > 0 && username.trim()) {
+      saveConversationToDb();
+    }
+  }, [messages, username, saveConversationToDb]);
+
+  const handleFeedbackUpdate = (messageIndex: number, feedbackData: { thumbs?: 'up' | 'down'; rating?: number; comment?: string }) => {
     setFeedback((prev: FeedbackData) => ({
       ...prev,
       [messageIndex]: feedbackData
     }));
+  };
+
+  const handleEndChat = () => {
+    if (messages.length === 0) {
+      alert('No conversation to end!');
+      return;
+    }
+    setShowOverallFeedbackDialog(true);
+  };
+
+  const handleOverallFeedbackSubmit = async (overallFeedback: {
+    rating: number;
+    thumbs: 'up' | 'down';
+    comment: string;
+  }) => {
+    try {
+      const response = await fetch('/api/end-chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId,
+          overallFeedback,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit overall feedback');
+      }
+
+      setIsChatEnded(true);
+      setShowOverallFeedbackDialog(false);
+      console.log('Overall feedback submitted successfully');
+      
+      // Show thank you message
+      alert('Thank you for your feedback! Your chat session has been completed.');
+    } catch (error) {
+      console.error('Error submitting overall feedback:', error);
+      alert('Failed to submit feedback. Please try again.');
+    }
   };
 
   const sendMessage = async () => {
@@ -220,8 +264,8 @@ export default function ChatPage() {
           }
         }
       }
-    } catch (error: any) {
-      if (error.name !== 'AbortError') {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name !== 'AbortError') {
         console.error('Chat error:', error);
         setMessages(prev => [...prev, {
           role: 'assistant',
@@ -253,6 +297,7 @@ export default function ChatPage() {
     setMessages([]);
     setStreamingContent('');
     setFeedback({});
+    setIsChatEnded(false);
     if (isStreaming) {
       stopGeneration();
     }
@@ -346,37 +391,35 @@ export default function ChatPage() {
         <Card className="h-[95vh] flex flex-col">
           <CardHeader className="flex-shrink-0">
             <div className="flex items-center justify-between">
-              <div>
+              <div className="flex-1">
                 <CardTitle className="text-2xl">LLM Chat Interface</CardTitle>
                 <p className="text-sm text-gray-600 mt-1">
                   Chat with GPT-4o via OpenRouter using streaming responses
                 </p>
               </div>
-              <div className="flex items-center gap-2">
-                <Badge variant={isStreaming ? "default" : "secondary"}>
-                  {isStreaming ? "Streaming..." : "Ready"}
-                </Badge>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={clearChat}
-                  disabled={isStreaming}
-                >
-                  Clear Chat
-                </Button>
+              <div className="flex items-center gap-4">
+                {/* Username input in header */}
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium">Username:</label>
+                  <Input
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Enter your username..."
+                    className="w-48"
+                    disabled={isStreaming || isChatEnded}
+                  />
+                </div>
+                {isStreaming && (
+                  <Badge variant="default">
+                    Streaming...
+                  </Badge>
+                )}
+                {isChatEnded && (
+                  <Badge variant="outline" className="border-green-500 text-green-700">
+                    Chat Completed
+                  </Badge>
+                )}
               </div>
-            </div>
-            
-            {/* Username input */}
-            <div className="mt-4">
-              <label className="text-sm font-medium">Username:</label>
-              <Input
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter your username..."
-                className="mt-1 max-w-xs"
-                disabled={isStreaming}
-              />
             </div>
           </CardHeader>
 
@@ -500,8 +543,8 @@ export default function ChatPage() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Type your message here..."
-                  disabled={isStreaming}
+                  placeholder={isChatEnded ? "Chat has ended" : "Type your message here..."}
+                  disabled={isStreaming || isChatEnded}
                   className="flex-1"
                 />
                 
@@ -516,21 +559,59 @@ export default function ChatPage() {
                 ) : (
                   <Button 
                     onClick={sendMessage}
-                    disabled={!input.trim() || !username.trim()}
+                    disabled={!input.trim() || !username.trim() || isChatEnded}
                   >
                     Send
                   </Button>
                 )}
               </div>
               
-              <p className="text-xs text-gray-500 mt-2">
-                Press Enter to send • Shift+Enter for new line
-                {!username.trim() && " • Enter username to start chatting"}
-              </p>
+              <div className="flex items-center justify-between mt-2">
+                <p className="text-xs text-gray-500">
+                  {isChatEnded ? (
+                    "Chat session completed"
+                  ) : (
+                    <>
+                      Press Enter to send • Shift+Enter for new line
+                      {!username.trim() && " • Enter username to start chatting"}
+                    </>
+                  )}
+                </p>
+                
+                {!isChatEnded && messages.length > 0 && (
+                  <Button 
+                    onClick={handleEndChat}
+                    variant="outline"
+                    size="sm"
+                    disabled={isStreaming}
+                    className="text-xs"
+                  >
+                    End Chat
+                  </Button>
+                )}
+                
+                {isChatEnded && (
+                  <Button 
+                    onClick={clearChat}
+                    variant="default"
+                    size="sm"
+                    className="text-xs"
+                  >
+                    New Chat
+                  </Button>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
       </div>
+      
+      {/* Overall Feedback Dialog */}
+      <OverallFeedbackDialog
+        isOpen={showOverallFeedbackDialog}
+        onClose={() => setShowOverallFeedbackDialog(false)}
+        onSubmit={handleOverallFeedbackSubmit}
+      />
     </div>
   );
 } 

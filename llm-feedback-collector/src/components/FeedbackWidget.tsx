@@ -78,7 +78,7 @@ export default function FeedbackWidget({
     await saveFeedback(feedback);
   };
 
-  const saveFeedback = async (feedback: any) => {
+  const saveFeedback = async (feedback: { thumbs?: 'up' | 'down'; rating?: number; comment?: string }) => {
     setIsSubmitting(true);
     try {
       await fetch('/api/feedback', {

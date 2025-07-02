@@ -24,6 +24,12 @@ export interface FeedbackData {
   };
 }
 
+export interface OverallFeedbackData {
+  rating: number; // 1-5 stars
+  thumbs: 'up' | 'down';
+  comment: string;
+}
+
 export interface ConversationData {
   sessionId: string;
   username: string;
@@ -60,6 +66,35 @@ export async function saveConversation(data: ConversationData) {
     return result;
   } catch (error) {
     console.error('Error saving conversation:', error);
+    throw error;
+  }
+}
+
+export async function endChatSession(
+  sessionId: string,
+  overallFeedback: OverallFeedbackData
+) {
+  try {
+    console.log('Ending chat session:', {
+      sessionId,
+      rating: overallFeedback.rating,
+      thumbs: overallFeedback.thumbs
+    });
+    
+    const result = await prisma.conversation.update({
+      where: { sessionId },
+      data: {
+        overallRating: overallFeedback.rating,
+        overallThumbs: overallFeedback.thumbs,
+        overallFeedback: overallFeedback.comment,
+        isCompleted: true,
+      },
+    });
+    
+    console.log('Chat session ended successfully:', result.id);
+    return result;
+  } catch (error) {
+    console.error('Error ending chat session:', error);
     throw error;
   }
 }
@@ -105,6 +140,10 @@ export async function getConversation(sessionId: string) {
     username: conversation.username,
     messages: JSON.parse(conversation.messages) as MessageData[],
     feedback: JSON.parse(conversation.feedback) as FeedbackData,
+    overallRating: conversation.overallRating,
+    overallThumbs: conversation.overallThumbs,
+    overallFeedback: conversation.overallFeedback,
+    isCompleted: conversation.isCompleted,
     createdAt: conversation.createdAt,
     updatedAt: conversation.updatedAt,
   };
