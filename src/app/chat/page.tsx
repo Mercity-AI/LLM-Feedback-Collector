@@ -35,7 +35,7 @@ export default function ChatPage() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingContent, setStreamingContent] = useState('');
   const [username, setUsername] = useState('');
-  const [sessionId] = useState(() => crypto.randomUUID());
+  const [sessionId, setSessionId] = useState<string>('');
   const [feedback, setFeedback] = useState<FeedbackData>({});
   const [showOverallFeedbackDialog, setShowOverallFeedbackDialog] = useState(false);
   const [isChatEnded, setIsChatEnded] = useState(false);
@@ -44,6 +44,11 @@ export default function ChatPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const isAtBottomRef = useRef(true);
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Generate session ID on client side only to avoid hydration mismatch
+  useEffect(() => {
+    setSessionId(crypto.randomUUID());
+  }, []);
 
   // Track user's scroll position to decide whether to auto-scroll (native div)
   useEffect(() => {
@@ -92,6 +97,11 @@ export default function ChatPage() {
   }, []);
 
   const saveConversationToDb = useCallback(async () => {
+    if (!sessionId) {
+      console.log('Session ID not ready, skipping save');
+      return;
+    }
+    
     try {
       const response = await fetch('/api/conversations', {
         method: 'POST',
@@ -118,10 +128,10 @@ export default function ChatPage() {
 
   // Save conversation to database whenever messages change
   useEffect(() => {
-    if (messages.length > 0 && username.trim()) {
+    if (messages.length > 0 && username.trim() && sessionId) {
       saveConversationToDb();
     }
-  }, [messages, username, saveConversationToDb]);
+  }, [messages, username, sessionId, saveConversationToDb]);
 
   const handleFeedbackUpdate = (messageIndex: number, feedbackData: { thumbs?: 'up' | 'down'; rating?: number; comment?: string }) => {
     setFeedback((prev: FeedbackData) => ({
@@ -143,6 +153,11 @@ export default function ChatPage() {
     thumbs: 'up' | 'down';
     comment: string;
   }) => {
+    if (!sessionId) {
+      alert('Session not ready. Please wait and try again.');
+      return;
+    }
+    
     try {
       const response = await fetch('/api/end-chat', {
         method: 'POST',
@@ -390,35 +405,41 @@ export default function ChatPage() {
       <div className="container mx-auto p-4 max-w-5xl">
         <Card className="h-[95vh] flex flex-col">
           <CardHeader className="flex-shrink-0">
-            <div className="flex items-center justify-between">
+            <div className="flex items-start justify-between">
               <div className="flex-1">
                 <CardTitle className="text-2xl">LLM Chat Interface</CardTitle>
                 <p className="text-sm text-gray-600 mt-1">
                   Chat with GPT-4o via OpenRouter using streaming responses
                 </p>
               </div>
-              <div className="flex items-center gap-4">
-                {/* Username input in header */}
-                <div className="flex items-center gap-2">
-                  <label className="text-sm font-medium">Username:</label>
-                  <Input
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Enter your username..."
-                    className="w-48"
-                    disabled={isStreaming || isChatEnded}
-                  />
+              <div className="flex flex-col items-end gap-2">
+                <div className="flex items-center gap-4">
+                  {/* Username input in header */}
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium">Username:</label>
+                    <Input
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder="Enter your username..."
+                      className="w-48"
+                      disabled={isStreaming || isChatEnded}
+                    />
+                  </div>
+                  {isStreaming && (
+                    <Badge variant="default">
+                      Streaming...
+                    </Badge>
+                  )}
+                  {isChatEnded && (
+                    <Badge variant="outline" className="border-green-500 text-green-700">
+                      Chat Completed
+                    </Badge>
+                  )}
                 </div>
-                {isStreaming && (
-                  <Badge variant="default">
-                    Streaming...
-                  </Badge>
-                )}
-                {isChatEnded && (
-                  <Badge variant="outline" className="border-green-500 text-green-700">
-                    Chat Completed
-                  </Badge>
-                )}
+                                 {/* Session ID below username */}
+                 <div className="text-xs text-gray-500 font-mono">
+                   Session ID: {sessionId || 'Loading...'}
+                 </div>
               </div>
             </div>
           </CardHeader>

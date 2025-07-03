@@ -79,6 +79,11 @@ export default function FeedbackWidget({
   };
 
   const saveFeedback = async (feedback: { thumbs?: 'up' | 'down'; rating?: number; comment?: string }) => {
+    if (!sessionId) {
+      console.log('Session ID not ready, skipping feedback save');
+      return;
+    }
+    
     setIsSubmitting(true);
     try {
       await fetch('/api/feedback', {
