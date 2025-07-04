@@ -5,7 +5,7 @@ export async function POST(request: NextRequest) {
   try {
     const { sessionId, feedback }: { sessionId: string; feedback: FeedbackData } = await request.json();
     
-    console.log('Feedback API called:', { sessionId, feedback });
+    console.debug('Feedback API called:', { sessionId, feedback });
     
     if (!sessionId) {
       return NextResponse.json(
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     
     await updateConversationFeedback(sessionId, feedback);
     
-    console.log('Feedback updated successfully');
+    console.debug('Feedback updated successfully');
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
     console.error('Error updating feedback:', error);

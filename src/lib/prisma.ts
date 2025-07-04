@@ -40,7 +40,7 @@ export interface ConversationData {
 // Database functions
 export async function saveConversation(data: ConversationData) {
   try {
-    console.log('Saving conversation:', {
+    console.debug('Saving conversation:', {
       sessionId: data.sessionId,
       username: data.username,
       messageCount: data.messages.length,
@@ -62,7 +62,7 @@ export async function saveConversation(data: ConversationData) {
       },
     });
     
-    console.log('Conversation saved successfully:', result.id);
+    console.debug('Conversation saved successfully:', result.id);
     return result;
   } catch (error) {
     console.error('Error saving conversation:', error);
@@ -75,7 +75,7 @@ export async function endChatSession(
   overallFeedback: OverallFeedbackData
 ) {
   try {
-    console.log('Ending chat session:', {
+    console.debug('Ending chat session:', {
       sessionId,
       rating: overallFeedback.rating,
       thumbs: overallFeedback.thumbs
@@ -91,7 +91,7 @@ export async function endChatSession(
       },
     });
     
-    console.log('Chat session ended successfully:', result.id);
+    console.debug('Chat session ended successfully:', result.id);
     return result;
   } catch (error) {
     console.error('Error ending chat session:', error);

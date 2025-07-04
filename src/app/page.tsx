@@ -54,6 +54,21 @@ export default function ChatPage() {
     setSessionId(crypto.randomUUID());
   }, []);
 
+  // Load username from localStorage on component mount
+  useEffect(() => {
+    const savedUsername = localStorage.getItem('llm-feedback-username');
+    if (savedUsername) {
+      setUsername(savedUsername);
+    }
+  }, []);
+
+  // Save username to localStorage whenever it changes
+  useEffect(() => {
+    if (username.trim()) {
+      localStorage.setItem('llm-feedback-username', username);
+    }
+  }, [username]);
+
   // Fetch configuration limits from backend
   useEffect(() => {
     const fetchLimits = async () => {
@@ -119,7 +134,7 @@ export default function ChatPage() {
 
   const saveConversationToDb = useCallback(async () => {
     if (!sessionId) {
-      console.log('Session ID not ready, skipping save');
+      console.debug('Session ID not ready, skipping save');
       return;
     }
     
@@ -141,7 +156,7 @@ export default function ChatPage() {
         throw new Error('Failed to save conversation');
       }
 
-      console.log('Conversation saved successfully');
+      console.debug('Conversation saved successfully');
     } catch (error) {
       console.error('Error saving conversation:', error);
     }
@@ -197,7 +212,7 @@ export default function ChatPage() {
 
       setIsChatEnded(true);
       setShowOverallFeedbackDialog(false);
-      console.log('Overall feedback submitted successfully');
+      console.debug('Overall feedback submitted successfully');
       
       // Show thank you message
       alert('Thank you for your feedback! Your chat session has been completed.');

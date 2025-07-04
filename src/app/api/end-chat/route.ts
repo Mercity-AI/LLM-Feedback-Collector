@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
       overallFeedback: OverallFeedbackData;
     } = await request.json();
     
-    console.log('End chat API called:', {
+    console.debug('End chat API called:', {
       sessionId: data.sessionId,
       rating: data.overallFeedback.rating,
       thumbs: data.overallFeedback.thumbs
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     
     await endChatSession(data.sessionId, data.overallFeedback);
     
-    console.log('Chat session ended successfully');
+    console.debug('Chat session ended successfully');
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
     console.error('Error ending chat session:', error);

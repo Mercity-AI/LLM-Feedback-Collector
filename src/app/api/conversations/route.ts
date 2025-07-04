@@ -5,7 +5,7 @@ export async function POST(request: NextRequest) {
   try {
     const data: ConversationData = await request.json();
     
-    console.log('Conversations API called:', {
+    console.debug('Conversations API called:', {
       sessionId: data.sessionId,
       username: data.username,
       messageCount: data.messages.length
