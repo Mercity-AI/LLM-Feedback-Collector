@@ -63,6 +63,13 @@ export default function ChatPage() {
     }
   }, []);
 
+  // Auto-expand settings on mobile when username is empty
+  useEffect(() => {
+    if (!username.trim()) {
+      setIsControlsExpanded(true);
+    }
+  }, [username]);
+
   // Save username to localStorage whenever it changes
   useEffect(() => {
     if (username.trim()) {
@@ -508,13 +515,13 @@ export default function ChatPage() {
                     </Badge>
                   )}
                 </div>
-                <div className="text-xs text-gray-500 font-mono truncate">
-                  Session ID: {sessionId || 'Loading...'}
-                </div>
+                                 <div className="text-xs text-gray-500 font-mono break-all">
+                   Session ID: {sessionId || 'Loading...'}
+                 </div>
               </div>
               
               {/* Mobile Layout */}
-              <div className="lg:hidden">
+              <div className="lg:hidden w-full min-w-0">
                 <div className="flex items-center justify-between">
                   <button
                     onClick={() => setIsControlsExpanded(!isControlsExpanded)}
@@ -544,37 +551,38 @@ export default function ChatPage() {
                   </div>
                 </div>
                 
-                {isControlsExpanded && (
-                  <div className="mt-3 space-y-3">
-                    {/* Model selector */}
-                    <div className="flex items-center gap-2">
-                      <label className="text-sm font-medium whitespace-nowrap w-20">Model:</label>
-                      <div className="flex-1">
-                        <ModelSelector 
-                          selectedModel={selectedModel}
-                          onModelChange={setSelectedModel}
-                          disabled={isStreaming || isChatEnded}
-                        />
-                      </div>
-                    </div>
-                    {/* Username input */}
-                    <div className="flex items-center gap-2">
-                      <label className="text-sm font-medium whitespace-nowrap w-20">Username:</label>
-                      <Input
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        placeholder="Enter your username..."
-                        className={`flex-1 ${!username.trim() ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''}`}
-                        disabled={isStreaming || isChatEnded}
-                      />
-                    </div>
-                  </div>
-                )}
+                                 {isControlsExpanded && (
+                   <div className="mt-3 space-y-3 px-1">
+                     {/* Model selector */}
+                     <div className="flex items-center gap-3">
+                       <label className="text-sm font-medium whitespace-nowrap w-20 shrink-0">Model:</label>
+                       <div className="flex-1 min-w-0">
+                         <ModelSelector 
+                           selectedModel={selectedModel}
+                           onModelChange={setSelectedModel}
+                           disabled={isStreaming || isChatEnded}
+                         />
+                       </div>
+                     </div>
+                     {/* Username input */}
+                     <div className="flex items-center gap-3">
+                       <label className="text-sm font-medium whitespace-nowrap w-20 shrink-0">Username:</label>
+                       <Input
+                         value={username}
+                         onChange={(e) => setUsername(e.target.value)}
+                         placeholder="Enter your username..."
+                         className={`flex-1 min-w-0 ${!username.trim() ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''}`}
+                         disabled={isStreaming || isChatEnded}
+                       />
+                     </div>
+                   </div>
+                 )}
                 
-                {/* Session ID - left aligned */}
-                <div className="text-xs text-gray-500 font-mono truncate mt-2">
-                  Session ID: {sessionId || 'Loading...'}
-                </div>
+                                 {/* Session ID - left aligned */}
+                 <div className="text-xs text-gray-500 font-mono mt-2 break-all">
+                   <span className="block sm:inline">Session ID: </span>
+                   <span className="block sm:inline">{sessionId || 'Loading...'}</span>
+                 </div>
               </div>
             </div>
           </CardHeader>
