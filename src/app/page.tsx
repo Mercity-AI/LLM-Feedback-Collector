@@ -717,6 +717,7 @@ export default function ChatPage() {
                     variant="destructive"
                     size="icon"
                     className="flex-shrink-0"
+                    onMouseDown={(e) => e.preventDefault()}
                   >
                     ⏹
                   </Button>
@@ -725,6 +726,7 @@ export default function ChatPage() {
                     onClick={sendMessage}
                     disabled={isSendDisabled}
                     className="flex-shrink-0 text-sm sm:text-base"
+                    onMouseDown={(e) => e.preventDefault()}
                   >
                     Send
                   </Button>
@@ -773,6 +775,7 @@ export default function ChatPage() {
                     size="sm"
                     disabled={isStreaming}
                     className="text-xs flex-shrink-0"
+                    onMouseDown={(e) => e.preventDefault()}
                   >
                     End Chat
                   </Button>
