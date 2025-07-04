@@ -711,6 +711,8 @@ export default function ChatPage() {
                     size="icon"
                     className="flex-shrink-0"
                     onMouseDown={(e) => e.preventDefault()}
+                    onTouchStart={(e) => e.preventDefault()}
+                    onPointerDown={(e) => e.preventDefault()}
                   >
                     ⏹
                   </Button>
@@ -720,6 +722,8 @@ export default function ChatPage() {
                     disabled={isSendDisabled}
                     className="flex-shrink-0 text-sm sm:text-base"
                     onMouseDown={(e) => e.preventDefault()}
+                    onTouchStart={(e) => e.preventDefault()}
+                    onPointerDown={(e) => e.preventDefault()}
                   >
                     Send
                   </Button>
@@ -769,6 +773,8 @@ export default function ChatPage() {
                     disabled={isStreaming}
                     className="text-xs flex-shrink-0"
                     onMouseDown={(e) => e.preventDefault()}
+                    onTouchStart={(e) => e.preventDefault()}
+                    onPointerDown={(e) => e.preventDefault()}
                   >
                     End Chat
                   </Button>
