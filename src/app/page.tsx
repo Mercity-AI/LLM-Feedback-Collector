@@ -134,6 +134,17 @@ export default function ChatPage() {
     }
   }, []);
 
+  // Auto-focus input after streaming ends (desktop only, to avoid mobile keyboard issues)
+  useEffect(() => {
+    if (inputRef.current && !isStreaming) {
+      // Only focus on desktop, not mobile (to prevent keyboard pop-up issues)
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      if (!isMobile) {
+        inputRef.current.focus();
+      }
+    }
+  }, [isStreaming]);
+
   const saveConversationToDb = useCallback(async () => {
     if (!sessionId) {
       console.debug('Session ID not ready, skipping save');
