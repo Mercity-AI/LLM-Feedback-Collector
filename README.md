@@ -205,6 +205,48 @@ GET /api/health    # System status
 POST /api/health   # Echo endpoint
 ```
 
+## ⚙️ Context Size Management
+
+The application includes built-in context size management to control conversation length and message size:
+
+### Environment Variables
+
+```env
+# Context message limit
+CONTEXT_MSG_LIMIT = -1        # -1 = unlimited, positive integer = max messages
+MAX_MSG_SIZE = 1000           # Maximum words per message
+```
+
+### Configuration Options
+
+- **`CONTEXT_MSG_LIMIT`**
+  - Set to `-1` for unlimited messages
+  - Set to any positive integer (e.g., `50`) to limit total messages per conversation
+  - When limit is reached, send button is disabled with warning message
+
+- **`MAX_MSG_SIZE`**
+  - Controls maximum words per individual message
+  - Default: 1000 words
+  - Shows real-time word count and warning when exceeded
+
+### User Experience
+
+- **Real-time Feedback**: Word count display shows current usage
+- **Visual Warnings**: Red text alerts when limits are exceeded
+- **Disabled Send Button**: Prevents sending when limits are reached
+- **Context Awareness**: Shows current message count vs. limit
+
+### API Configuration
+```bash
+GET /api/config
+# Returns current limits configuration
+{
+  "contextMsgLimit": -1,
+  "maxMsgSize": 1000,
+  "status": "success"
+}
+```
+
 ## 💾 Data Access & Management
 
 ### Using Prisma Studio

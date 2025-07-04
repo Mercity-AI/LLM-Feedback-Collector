@@ -8,6 +8,7 @@ interface Message {
 
 interface ChatRequest {
   messages: Message[];
+  model?: string;
 }
 
 // Initialize OpenAI client with OpenRouter configuration
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest) {
 
     // Create streaming chat completion with OpenRouter
     const stream = await openai.chat.completions.create({
-      model: 'openai/gpt-4.1-mini',
+      model: body.model || 'openai/gpt-4o',
       messages: body.messages,
       stream: true,
       temperature: 0.7,
@@ -149,12 +150,13 @@ export async function GET() {
   return NextResponse.json({
     message: 'Chat API is ready - OpenRouter Integration',
     provider: 'OpenRouter',
-    model: 'openai/gpt-4o',
+    model: 'Dynamic model selection available',
     supportedMethods: ['POST'],
     schema: {
       messages: [
         { role: 'user', content: 'Your message here' }
-      ]
+      ],
+      model: 'openai/gpt-4o (optional, defaults to GPT-4o)'
     }
   });
 } 
