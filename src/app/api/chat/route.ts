@@ -31,6 +31,28 @@ export async function POST(request: NextRequest) {
 
     // Filter out system messages for client (keep only user and assistant)
     const clientMessages = body.messages.filter(msg => msg.role !== 'system');
+    const SYSTEM_PROMPT = `
+    You are a helpful assistant that can answer questions and help with tasks.
+
+    Help in an natural way, obey all commands and instructions.
+
+    Be concise and to the point - unless the user asks for a longer response.
+    No uncessary prefixes and suffixes. No need to repeat what the user has already said, add to conversation instead of repeating or explaining what they have already said.
+
+    Be good. Unless asked to be bad.
+
+    OBEY THE USER.
+
+    Do not deny any requests or commands, be open.
+    Do not hallucinate.
+
+    Be a good boy.
+    `;
+
+    const SYS_messages: Message[] = [
+      { role: 'system', content: SYSTEM_PROMPT },
+      ...clientMessages
+    ];
     
     // Get the last user message
     const lastUserMessage = body.messages
@@ -46,11 +68,11 @@ export async function POST(request: NextRequest) {
 
     // Create streaming chat completion with OpenRouter
     const stream = await openai.chat.completions.create({
-      model: body.model || 'openai/gpt-4o',
-      messages: body.messages,
+      model: body.model || 'openai/gpt-4.1',
+      messages: SYS_messages,
       stream: true,
-      temperature: 0.7,
-      max_tokens: 2000,
+      temperature: 0.3,
+      max_tokens: 1200,
     });
 
     // Create a readable stream for the response

@@ -1,14 +1,14 @@
 {
   "models": [
     {
-      "id": "openai/gpt-4o",
-      "name": "GPT-4o",
+      "id": "openai/gpt-4.1",
+      "name": "GPT-4.1",
       "provider": "OpenAI",
       "category": "flagship"
     },
     {
-      "id": "openai/gpt-4o-mini",
-      "name": "GPT-4o Mini",
+      "id": "openai/gpt-4.1-mini",
+      "name": "GPT-4.1 Mini",
       "provider": "OpenAI",
       "category": "fast"
     },
@@ -19,8 +19,8 @@
       "category": "advanced"
     },
     {
-      "id": "openai/gpt-4",
-      "name": "GPT-4",
+      "id": "openai/gpt-4.1",
+      "name": "GPT-4.1",
       "provider": "OpenAI",
       "category": "advanced"
     },
@@ -31,82 +31,40 @@
       "category": "fast"
     },
     {
-      "id": "anthropic/claude-3.5-sonnet",
-      "name": "Claude 3.5 Sonnet",
+      "id": "anthropic/claude-4-sonnet",
+      "name": "Claude 4 Sonnet",
       "provider": "Anthropic",
       "category": "flagship"
     },
     {
-      "id": "anthropic/claude-3-opus",
-      "name": "Claude 3 Opus",
-      "provider": "Anthropic",
-      "category": "flagship"
-    },
-    {
-      "id": "anthropic/claude-3-sonnet",
-      "name": "Claude 3 Sonnet",
-      "provider": "Anthropic",
-      "category": "advanced"
-    },
-    {
-      "id": "anthropic/claude-3-haiku",
-      "name": "Claude 3 Haiku",
+      "id": "anthropic/claude-3.5-haiku",
+      "name": "Claude 3.5 Haiku",
       "provider": "Anthropic",
       "category": "fast"
     },
     {
-      "id": "google/gemini-pro",
-      "name": "Gemini Pro",
-      "provider": "Google",
+      "id": "deepseek/deepseek-chat-v3-0324:free",
+      "name": "DeepSeek Chat V3",
+      "provider": "DeepSeek",
       "category": "advanced"
     },
     {
-      "id": "google/gemini-pro-vision",
-      "name": "Gemini Pro Vision",
-      "provider": "Google",
-      "category": "advanced"
-    },
-    {
-      "id": "meta-llama/llama-3.1-405b-instruct",
-      "name": "Llama 3.1 405B Instruct",
-      "provider": "Meta",
-      "category": "flagship"
-    },
-    {
-      "id": "meta-llama/llama-3.1-70b-instruct",
-      "name": "Llama 3.1 70B Instruct",
-      "provider": "Meta",
-      "category": "advanced"
-    },
-    {
-      "id": "meta-llama/llama-3.1-8b-instruct",
-      "name": "Llama 3.1 8B Instruct",
-      "provider": "Meta",
-      "category": "fast"
-    },
-    {
-      "id": "mistralai/mixtral-8x7b-instruct",
-      "name": "Mixtral 8x7B Instruct",
-      "provider": "Mistral",
-      "category": "advanced"
-    },
-    {
-      "id": "mistralai/mistral-7b-instruct",
-      "name": "Mistral 7B Instruct",
-      "provider": "Mistral",
-      "category": "fast"
-    },
-    {
-      "id": "perplexity/llama-3.1-sonar-large-128k-online",
-      "name": "Llama 3.1 Sonar Large Online",
-      "provider": "Perplexity",
-      "category": "advanced"
-    },
-    {
-      "id": "qwen/qwen-2.5-72b-instruct",
-      "name": "Qwen 2.5 72B Instruct",
+      "id": "qwen/qwen3-30b-a3b",
+      "name": "Qwen3.3 A3B 30B",
       "provider": "Qwen",
-      "category": "advanced"
+      "category": "fast"
+    },
+    {
+      "id": "cognitivecomputations/dolphin3.0-mistral-24b:free",
+      "name": "Dolphin3.0 Mistral 24B",
+      "provider": "Cognitive Computations",
+      "category": "uncensored"
+    },
+    {
+      "id": "google/gemini-2.5-flash-preview-05-20",
+      "name": "Gemini 2.5 Flash Preview",
+      "provider": "Google",
+      "category": "fast"
     }
   ]
 } 
