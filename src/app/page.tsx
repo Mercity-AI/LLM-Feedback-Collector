@@ -43,6 +43,7 @@ export default function ChatPage() {
   const [selectedModel, setSelectedModel] = useState('openai/gpt-4o');
   const [contextMsgLimit, setContextMsgLimit] = useState<number>(-1);
   const [maxMsgSize, setMaxMsgSize] = useState<number>(1000);
+  const [isControlsExpanded, setIsControlsExpanded] = useState(false);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -465,18 +466,20 @@ export default function ChatPage() {
       <div className="container mx-auto p-4 max-w-5xl">
         <Card className="h-[95vh] flex flex-col">
           <CardHeader className="flex-shrink-0">
-            <div className="flex items-start justify-between">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div className="flex-1">
-                <CardTitle className="text-2xl">LLM Chat Interface</CardTitle>
+                <CardTitle className="text-xl lg:text-2xl">LLM Chat Interface</CardTitle>
                 <p className="text-sm text-gray-600 mt-1">
                   Chat with multiple LLM models via OpenRouter using streaming responses
                 </p>
               </div>
-              <div className="flex flex-col items-end gap-2">
+              
+              {/* Desktop Layout */}
+              <div className="hidden lg:flex lg:flex-col lg:items-end lg:gap-2">
                 <div className="flex items-center gap-4">
                   {/* Model selector */}
                   <div className="flex items-center gap-2">
-                    <label className="text-sm font-medium">Model:</label>
+                    <label className="text-sm font-medium whitespace-nowrap">Model:</label>
                     <ModelSelector 
                       selectedModel={selectedModel}
                       onModelChange={setSelectedModel}
@@ -485,12 +488,12 @@ export default function ChatPage() {
                   </div>
                   {/* Username input in header */}
                   <div className="flex items-center gap-2">
-                    <label className="text-sm font-medium">Username:</label>
+                    <label className="text-sm font-medium whitespace-nowrap">Username:</label>
                     <Input
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       placeholder="Enter your username..."
-                      className="w-48"
+                      className={`w-48 ${!username.trim() ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''}`}
                       disabled={isStreaming || isChatEnded}
                     />
                   </div>
@@ -505,10 +508,73 @@ export default function ChatPage() {
                     </Badge>
                   )}
                 </div>
-                                 {/* Session ID below username */}
-                 <div className="text-xs text-gray-500 font-mono">
-                   Session ID: {sessionId || 'Loading...'}
-                 </div>
+                <div className="text-xs text-gray-500 font-mono truncate">
+                  Session ID: {sessionId || 'Loading...'}
+                </div>
+              </div>
+              
+              {/* Mobile Layout */}
+              <div className="lg:hidden">
+                <div className="flex items-center justify-between">
+                  <button
+                    onClick={() => setIsControlsExpanded(!isControlsExpanded)}
+                    className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+                  >
+                    Settings
+                    <svg 
+                      className={`w-4 h-4 transition-transform ${isControlsExpanded ? 'rotate-180' : ''}`}
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  <div className="flex items-center gap-2">
+                    {isStreaming && (
+                      <Badge variant="default">
+                        Streaming...
+                      </Badge>
+                    )}
+                    {isChatEnded && (
+                      <Badge variant="outline" className="border-green-500 text-green-700">
+                        Chat Completed
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                
+                {isControlsExpanded && (
+                  <div className="mt-3 space-y-3">
+                    {/* Model selector */}
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm font-medium whitespace-nowrap w-20">Model:</label>
+                      <div className="flex-1">
+                        <ModelSelector 
+                          selectedModel={selectedModel}
+                          onModelChange={setSelectedModel}
+                          disabled={isStreaming || isChatEnded}
+                        />
+                      </div>
+                    </div>
+                    {/* Username input */}
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm font-medium whitespace-nowrap w-20">Username:</label>
+                      <Input
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        placeholder="Enter your username..."
+                        className={`flex-1 ${!username.trim() ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''}`}
+                        disabled={isStreaming || isChatEnded}
+                      />
+                    </div>
+                  </div>
+                )}
+                
+                {/* Session ID - left aligned */}
+                <div className="text-xs text-gray-500 font-mono truncate mt-2">
+                  Session ID: {sessionId || 'Loading...'}
+                </div>
               </div>
             </div>
           </CardHeader>
@@ -517,7 +583,7 @@ export default function ChatPage() {
 
           <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
             {/* Messages Area */}
-            <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-4">
               {messages.length === 0 && !isStreaming && (
                 <div className="text-center text-gray-500 py-8">
                   <p className="text-lg">Start a conversation!</p>
@@ -546,7 +612,7 @@ export default function ChatPage() {
                   )}
                   
                   <div
-                    className={`max-w-[75%] rounded-lg px-4 py-2 overflow-hidden ${
+                    className={`max-w-[85%] sm:max-w-[75%] rounded-lg px-3 py-2 sm:px-4 sm:py-2 overflow-hidden ${
                       message.role === 'user'
                         ? 'bg-blue-500 text-white'
                         : 'bg-gray-100 text-gray-900'
@@ -594,7 +660,7 @@ export default function ChatPage() {
                       AI
                     </AvatarFallback>
                   </Avatar>
-                  <div className="max-w-[75%] rounded-lg px-4 py-2 bg-gray-100 text-gray-900 overflow-hidden">
+                  <div className="max-w-[85%] sm:max-w-[75%] rounded-lg px-3 py-2 sm:px-4 sm:py-2 bg-gray-100 text-gray-900 overflow-hidden">
                     <MarkdownMessage content={streamingContent} />
                     <div className="inline-block w-2 h-4 bg-blue-500 ml-1 animate-pulse"></div>
                   </div>
@@ -609,7 +675,7 @@ export default function ChatPage() {
                       AI
                     </AvatarFallback>
                   </Avatar>
-                  <div className="max-w-[75%] rounded-lg px-4 py-2 bg-gray-100 text-gray-900">
+                  <div className="max-w-[85%] sm:max-w-[75%] rounded-lg px-3 py-2 sm:px-4 sm:py-2 bg-gray-100 text-gray-900">
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
                       <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce delay-100"></div>
@@ -626,7 +692,7 @@ export default function ChatPage() {
             <Separator />
 
             {/* Input Area */}
-            <div className="p-4 flex-shrink-0">
+            <div className="p-2 sm:p-4 flex-shrink-0">
               <div className="flex gap-2">
                 <Input
                   ref={inputRef}
@@ -635,7 +701,7 @@ export default function ChatPage() {
                   onKeyPress={handleKeyPress}
                   placeholder={isChatEnded ? "Chat has ended" : "Type your message here..."}
                   disabled={isStreaming || isChatEnded}
-                  className="flex-1"
+                  className="flex-1 text-sm sm:text-base"
                 />
                 
                 {isStreaming ? (
@@ -643,6 +709,7 @@ export default function ChatPage() {
                     onClick={stopGeneration}
                     variant="destructive"
                     size="icon"
+                    className="flex-shrink-0"
                   >
                     ⏹
                   </Button>
@@ -650,15 +717,16 @@ export default function ChatPage() {
                   <Button 
                     onClick={sendMessage}
                     disabled={isSendDisabled}
+                    className="flex-shrink-0 text-sm sm:text-base"
                   >
                     Send
                   </Button>
                 )}
               </div>
               
-              <div className="flex items-center justify-between mt-2">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-2 gap-2">
                 <div className="flex-1">
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 hidden sm:block">
                     {isChatEnded ? (
                       "Chat session completed"
                     ) : (
@@ -697,7 +765,7 @@ export default function ChatPage() {
                     variant="outline"
                     size="sm"
                     disabled={isStreaming}
-                    className="text-xs"
+                    className="text-xs flex-shrink-0"
                   >
                     End Chat
                   </Button>

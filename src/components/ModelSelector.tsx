@@ -57,7 +57,7 @@ export default function ModelSelector({ selectedModel, onModelChange, disabled }
       <button
         onClick={() => setIsOpen(!isOpen)}
         disabled={disabled}
-        className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed min-w-[200px] text-left"
+        className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed w-full text-left"
       >
         <div className="flex-1">
           <div className="font-medium">{currentModel?.name}</div>
