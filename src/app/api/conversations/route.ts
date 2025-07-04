@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     
     await saveConversation(data);
     
-    console.log('Conversation API saved successfully');
+    console.debug('Conversation API saved successfully');
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
     console.error('Error saving conversation:', error);

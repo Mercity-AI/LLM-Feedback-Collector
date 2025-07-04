@@ -13,25 +13,7 @@
       "category": "fast"
     },
     {
-      "id": "openai/gpt-4-turbo",
-      "name": "GPT-4 Turbo",
-      "provider": "OpenAI",
-      "category": "advanced"
-    },
-    {
-      "id": "openai/gpt-4.1",
-      "name": "GPT-4.1",
-      "provider": "OpenAI",
-      "category": "advanced"
-    },
-    {
-      "id": "openai/gpt-3.5-turbo",
-      "name": "GPT-3.5 Turbo",
-      "provider": "OpenAI",
-      "category": "fast"
-    },
-    {
-      "id": "anthropic/claude-4-sonnet",
+      "id": "anthropic/claude-sonnet-4",
       "name": "Claude 4 Sonnet",
       "provider": "Anthropic",
       "category": "flagship"
