@@ -713,6 +713,12 @@ export default function ChatPage() {
                   placeholder={isChatEnded ? "Chat has ended" : "Type your message here..."}
                   disabled={isStreaming || isChatEnded}
                   className="flex-1 text-sm sm:text-base resize-none"
+                  inputMode="text"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck="false"
+                  style={{ fontSize: '16px' }}
                 />
                 
                 {isStreaming ? (
