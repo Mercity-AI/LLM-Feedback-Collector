@@ -127,14 +127,7 @@ export default function ChatPage() {
     scrollToBottom();
   }, [messages, streamingContent]);
 
-  // Auto-focus input on mount and after sending messages
-  useEffect(() => {
-    if (inputRef.current && !isStreaming) {
-      inputRef.current.focus();
-    }
-  }, [isStreaming]);
-
-  // Focus input on mount
+  // Auto-focus input on initial mount
   useEffect(() => {
     if (inputRef.current) {
       inputRef.current.focus();
