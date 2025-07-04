@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
@@ -46,7 +47,7 @@ export default function ChatPage() {
   const [isControlsExpanded, setIsControlsExpanded] = useState(false);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const isAtBottomRef = useRef(true);
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -240,17 +241,17 @@ export default function ChatPage() {
     };
 
     setMessages(prev => [...prev, userMessage]);
-    setInput('');
     setIsStreaming(true);
     setStreamingContent('');
     isAtBottomRef.current = true; // assume user wants to stay at bottom after sending
     
-    // Maintain focus on input after clearing
-    setTimeout(() => {
-      if (inputRef.current) {
-        inputRef.current.focus();
-      }
-    }, 100);
+    // Clear input while maintaining focus (prevents mobile keyboard from closing)
+    setInput('');
+    
+    // Ensure input stays focused (especially important for mobile)
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
 
     // Create new abort controller for this request
     abortControllerRef.current = new AbortController();
@@ -338,7 +339,7 @@ export default function ChatPage() {
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
@@ -362,12 +363,10 @@ export default function ChatPage() {
       stopGeneration();
     }
     
-    // Restore focus after clearing
-    setTimeout(() => {
-      if (inputRef.current) {
-        inputRef.current.focus();
-      }
-    }, 100);
+    // Restore focus after clearing (maintain focus to prevent mobile keyboard issues)
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
   };
 
   // Helper function to count words in a message
@@ -702,14 +701,14 @@ export default function ChatPage() {
             {/* Input Area */}
             <div className="p-2 sm:p-4 flex-shrink-0">
               <div className="flex gap-2">
-                <Input
+                <Textarea
                   ref={inputRef}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  onKeyPress={handleKeyPress}
+                  onKeyDown={handleKeyDown}
                   placeholder={isChatEnded ? "Chat has ended" : "Type your message here..."}
                   disabled={isStreaming || isChatEnded}
-                  className="flex-1 text-sm sm:text-base"
+                  className="flex-1 text-sm sm:text-base resize-none"
                 />
                 
                 {isStreaming ? (
