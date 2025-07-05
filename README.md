@@ -1,6 +1,11 @@
 # LLM Feedback Collector
+<img width="1512" alt="Screenshot 2025-07-05 at 17 03 09" src="https://github.com/user-attachments/assets/3840c912-7145-4e4c-93df-9d6323cad9f3" />
 
 A comprehensive Next.js application for collecting detailed feedback on LLM responses with real-time streaming chat interface, per-message feedback, and overall conversation evaluation.
+
+---
+Check it out here: [Mercity LLM Feedback Collector](https://collector.mercity.ai/)
+---
 
 ## ✨ Features
 
