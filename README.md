@@ -426,7 +426,7 @@ MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🔗 Links
 
-- [Live Demo](your-demo-url)
+- [Live Demo](https://collector.mercity.ai/)
 - [OpenRouter Documentation](https://openrouter.ai/docs)
 - [Prisma Documentation](https://www.prisma.io/docs)
 - [Next.js Documentation](https://nextjs.org/docs)
